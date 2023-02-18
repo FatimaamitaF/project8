@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8" />
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+     <title>Weather</title>
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+          crossorigin="anonymous"></script>
+</head>
+
+     <div class="weatherapp">
+          <form class="searchform" id="searchform">
+               <label for="site-search"></label>
+               <input type="search" id="site-search" name="q" placeholder="Type in city" />
+               <button>Search</button>
+          </form>
+
+          <body>
+               <br />
+
+               <div class="twops">
+                    <p class="date" id="date"></p>
+                    <p class="time" id="time"></p>
+               </div>
+
+               <h3 id="cityname">
+                    _
+               </h3>
+               <br />
+               <h3 id="citytemp" class="citytemp">
+                   -
+               </h3>
+               <em class="celsius"><p> <a href="#" id="celsiuslink">°C</a></p></em>
+               
+
+               <em class="units" id="units">
+                    <p> / <a href="#" id="fahrenheitlink">F°</a></p>
+               </em>
+          <img id="icon" src="https://ssl.gstatic.com/onebox/weather/64/sunny.png" alt="weather image"/> 
+<br><br> 
+          <p id="description">...</p>
+               <br>  
+                    <div class="container">
+                         <div class="row">
+                              <div class="col">
+                          <strong><p>Wind :</p></strong>
+                              <p class="wind" id="wind">/</p>
+                              </div>
+                              <div class="col">
+                           <strong> <p>Humidity :</p> </strong>
+                              <p class="humidity" id="humidity">/</p>
+                              </div>
+                         </div>
+                    </div>
+               <br><br><br>
+               <h5>Forecast</h5>
+               <br><br><br>
+
+               <div class="weather-forecast" id="forecast">
+               </div>
+  
+
+          </body>
+
+          <!--JavaScript-->
+
+     
+                    <script>
+   var datetime = new Date().toLocaleTimeString();
+     console.log(datetime);
+     document.getElementById("time").innerHTML = datetime;
+
+     const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+     ];
+     const d = new Date();
+     let day = days[d.getDay()];
+     document.getElementById("date").innerHTML = day;
+
+     // Forecast code
+
+     function formatDay(time) {
+          let date = new Date(time * 1000);
+          let days = [
+               "Sunday",
+               "Monday",
+               "Tuesday",
+               "Wednesday",
+               "Thursday",
+               "Friday",
+               "Saturday",
+               "Sunday"
+          ];
+          let day = days[date.getDay()];
+          return day;
+     }
+
+     function displayForecast(response) {
+          let forecastElement = document.querySelector("#forecast");
+          let forecast = response.data.daily;
+
+          let forecastHTML = `<div class="row">`;
+          forecast.forEach(function (forecastDay, index) {
+               if (index < 6) {
+                    forecastHTML =
+                         forecastHTML +
+                         ` 
+                    <div class="col-2">
+                         <div class="weather-forecast-day">${formatDay(
+                              forecastDay.dt * 1000
+                         )} </div>
+                        <img src="http://openweathermap.org/img/wn/${forecastDay.weather[0].icon
+                         }@2x.png/>
+                         <div class="weather-forecast-temperature">
+                           <span class="forecat-min">${Math.round(
+                              forecastDay.temp.min
+                         )}°</span> 
+                           <span class="forecast-max">${Math.round(
+                              forecastDay.temp.max
+                         )}°</span>
+                         </div>
+               </div>`;
+               }
+          });
+
+          forecastHTML = forecastHTML + `</div>`;
+          forecastElement.innerHTML = forecastHTML;
+     }
+
+     function getForecast(coordinates) {
+          console.log(coordinates);
+          let apiKey = "b400ae3b711a616262d18b0ca2cbe78f";
+          let apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${apiKey}&units=metric`;
+          axios.get(apiUrl).then(displayForecast);
+     }
+
+     // Main JS code / search for city and current weather
+
+     function temperature(response) {
+          console.log(response.data);
+          let cityElement = document.querySelector("#cityname");
+          cityElement.innerHTML = response.data.name;
+
+          let temp = Math.round(response.data.main.temp);
+          celsiustemp = temp;
+          let tempelement = document.querySelector("#citytemp");
+          tempelement.innerHTML = temp + "°C";
+
+          let humidityElement = document.querySelector("#humidity");
+          humidityElement.innerHTML = response.data.main.humidity + "%";
+
+          let windElement = document.querySelector("#wind");
+          windElement.innerHTML = Math.round(response.data.wind.speed) + "km/h";
+
+          let iconElement = document.querySelector("#icon");
+          iconElement.setAttribute(
+               "src",
+               `http://openweathermap.org/img/wn/${response.data.weather[0].icon}@2x.png`
+          );
+          iconElement.setAttribute("alt", response.data.weather[0].description);
+
+          let descriptionElement = document.querySelector("#description");
+          descriptionElement.innerHTML =
+               "Weather now: " + response.data.weather[0].description;
+
+          getForecast(response.data.coord);
+     }
+     function search(event) {
+          event.preventDefault();
+          let cityInput = document.querySelector("#site-search").value;
+          searchCity(cityInput);
+     }
+
+     function searchCity(city) {
+          let apiKey = "0a521eaf234a3a56f45252fac3c737ad";
+          let units = "metric";
+          let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=${units}`;
+          axios.get(`${url}&appid=${apiKey}`).then(temperature);
+     }
+
+     let searchForm = document.querySelector(`form`);
+     searchForm.addEventListener("submit", search);
+
+     // Unit conversion
+
+     function Fahrenheit(event) {
+          event.preventDefault();
+          let tempelement = document.querySelector("#citytemp");
+          celsiuslink.classList.remove("active");
+          fahrenheitlink.classList.add("active");
+          let fahrenheittemp = celsiustemp * 1.8 + 32;
+          tempelement.innerHTML = Math.round(fahrenheittemp) + "°F";
+     }
+
+     function Celsius(event) {
+          event.preventDefault();
+          celsiuslink.classList.add("active");
+          fahrenheitlink.classList.remove("active");
+          let tempelement = document.querySelector("#citytemp");
+          tempelement.innerHTML = Math.round(celsiustemp) + "°C";
+     }
+
+     let celsiustemp = null;
+     let fahrenheitlink = document.querySelector("#fahrenheitlink");
+     fahrenheitlink.addEventListener("click", Fahrenheit);
+     let celsiuslink = document.querySelector("#celsiuslink");
+     celsiuslink.addEventListener("click", Celsius);
+          
+         
+
+
+         </script>
+
+     <!--JavaScript-->
+
+     </div>
+
+     <footer>Coded and designed by Fatima</footer>
+     <a href="https://enchanting-valkyrie-63c47f.netlify.app" target="_blank">Made with Netlify</a>
+     <br>
+     <a href="https://github.com/FatimaamitaF/Project7" target="_blank">My Repository</a>
+</body>
+
+<!--CSS-->
+
+<style>
+     button {
+          border-radius: 15px;
+          background-color: gainsboro;
+          color: gray;
+          border-color: grey;
+          margin-bottom: 0.25cm;
+     }
+
+     input {
+          border-radius: 7px;
+          background-color: white;
+          color: blueviolet;
+          border-color: grey;
+     }
+
+     body {
+          
+          padding-left: 95px;
+          padding-right: 95px;
+          background-color: rgb(39, 39, 39)
+     }
+
+     .weatherapp {
+          background-color: rgb(245, 244, 252); 
+          margin-top: 45px;
+          margin-right: 5px;
+          margin-bottom: 55px;
+          border-radius: 15px; 
+          padding-top: 25px;
+          padding-right: 95px;
+          padding-left: 125px;
+          padding-bottom: 75px;
+          text-align: left; 
+          
+     }
+
+ 
+     .twops p {
+          display: inline-block;
+     }
+
+     a{
+          color: grey ;
+          font-size: large; 
+     }
+
+
+     footer{
+          color: white;
+          font-size: large;
+          padding-bottom: 15px;
+     }
+
+   
+ 
+     .citytemp{
+          display: inline-block;
+          padding-right: 11px;
+          font-size: 45px; 
+          
+     }
+     em{
+          display: inline-block;
+          padding-right: 11px;
+          font-size: 21px;
+          padding-top: 35px;
+     }
+  
+     .wind {
+          display: inline-flex;
+          
+          
+     }  
+      .humidity{
+          display: inline-flex;
+         
+     } 
+      .precipitation {
+          display: inline-flex;
+         
+     }    
+     .celsius{
+         display: inline-flex; 
+     }
+    
+</style>
+
+<!--CSS-->
+
+
+</html> 
